@@ -22,12 +22,23 @@ i2c = machine.I2C(scl=machine.Pin(pinScl), sda=machine.Pin(pinSda))
 msg_frq = 60  # every 1 minute
 now_mqtt = time.time()
 
+# mqtt init and subscribe
+def sub_cb(topic, msg):
+  global temp_out
+  temp_out = msg.decode('utf-8')
+  print((topic, msg))
+
+client = MQTTClient('wemos-d1-mini-001', server='io.adafruit.com', user='Spalk', password='dfdd23126c5a4cd68ef8404e0f7c6b06')
+client.set_callback(sub_cb)
+client.connect()
+client.subscribe(topic="Spalk/feeds/weather.temp") 
+
 # init display
 display = sh1106.SH1106_I2C(128, 64, i2c, machine.Pin(16), 0x3c)
 
 # time synchroninize freq
 ntptime.settime()
-time_synq_frq = 86400  # everyday
+time_synq_frq = 3600  # everyday
 now_time = time.time()
 
 
@@ -38,6 +49,16 @@ while True:
   temp = bme_data[0]/100              # degrees Celsius
   pres = bme_data[1]/256/100000*750   # mm Hg 
   humi = bme_data[2]/1024             # relative humidity
+
+  # check new mqtt messages
+  client.check_msg()
+
+  # recive and send mqtt messages to brocker
+  if time.time() - now_mqtt > msg_frq:
+    client.publish('Spalk/feeds/kidsroom.temp', str(temp))
+    client.publish('Spalk/feeds/kidsroom.humid', str(humi))
+    client.publish('Spalk/feeds/weather.pressure', str(pres))
+    now_mqtt = time.time()
 
   # current time
   hour = str(time.localtime(time.time()+10800)[3])   #  10800 seq == +3 hours - Moscow time
@@ -56,20 +77,14 @@ while True:
   display.text('T.ins = '+'{:.1f}'.format(temp)+' C', 0, 20, 1)
   display.text('Humid = '+'{:.0f}'.format(humi)+' %', 0, 30, 1)
   display.text('Press = '+'{:.0f}'.format(pres)+'mmHg', 0, 40, 1)
-  display.text('T.out = xx.x C', 0, 50, 1)
+  if temp_out:
+    display.text('T.out = '+temp_out+' C', 0, 50, 1)
   display.show()
-
-  # send mqtt messages to brocker
-  if time.time() - now_mqtt > msg_frq:
-    client = MQTTClient('wemos-d1-mini-001', server='io.adafruit.com', user='Spalk', password='dfdd23126c5a4cd68ef8404e0f7c6b06')
-    client.connect()
-    client.publish('Spalk/feeds/kidsroom.temp', str(temp))
-    client.publish('Spalk/feeds/kidsroom.humid', str(humi))
-    client.publish('Spalk/feeds/weather.pressure', str(pres))
-    now_mqtt = time.time()
 
   # time sync
   if time.time() - now_time > time_synq_frq:
     ntptime.settime()
 
   time.sleep_ms(5000)
+
+client.disconnect()
