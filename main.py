@@ -25,16 +25,24 @@ now_mqtt = time.time()
 # mqtt init and subscribe
 def sub_cb(topic, msg):
   global temp_out
-  temp_out = msg.decode('utf-8')
-  print((topic, msg))
+  global display_switch
+  print('Recieved from brocker: ', (topic, msg))
+  if topic.decode('utf-8') == 'Spalk/feeds/weather.temp':
+    temp_out = msg.decode('utf-8')
+  elif topic.decode('utf-8') == 'Spalk/feeds/kidsroom.oled':
+    display_switch = msg.decode('utf-8')
+  else:
+    pass
 
 client = MQTTClient('wemos-d1-mini-001', server='io.adafruit.com', user='Spalk', password='dfdd23126c5a4cd68ef8404e0f7c6b06')
 client.set_callback(sub_cb)
 client.connect()
-client.subscribe(topic="Spalk/feeds/weather.temp") 
+client.subscribe(topic='Spalk/feeds/weather.temp') 
+client.subscribe(topic='Spalk/feeds/kidsroom.oled') 
 
 # init display
 display = sh1106.SH1106_I2C(128, 64, i2c, machine.Pin(16), 0x3c)
+display_switch = 'ON'
 
 # time synchroninize freq
 ntptime.settime()
@@ -69,17 +77,21 @@ while True:
     minute = '0' + minute
 
   # show info on display
-  display.sleep(False)
-  display.contrast(0)
-  display.fill(0)
-  display.text('* %s:%s *' % (hour, minute), 30, 0, 1)
-  display.line(0,10,128,10,1)
-  display.text('T.ins = '+'{:.1f}'.format(temp)+' C', 0, 20, 1)
-  display.text('Humid = '+'{:.0f}'.format(humi)+' %', 0, 30, 1)
-  display.text('Press = '+'{:.0f}'.format(pres)+'mmHg', 0, 40, 1)
-  if temp_out:
-    display.text('T.out = '+temp_out+' C', 0, 50, 1)
-  display.show()
+  if display_switch == 'ON':
+    display.sleep(False)
+    display.contrast(0)
+    display.fill(0)
+    display.text('* %s:%s *' % (hour, minute), 30, 0, 1)
+    display.line(0,10,128,10,1)
+    display.text('T.ins = '+'{:.1f}'.format(temp)+' C', 0, 20, 1)
+    display.text('Humid = '+'{:.0f}'.format(humi)+' %', 0, 30, 1)
+    display.text('Press = '+'{:.0f}'.format(pres)+'mmHg', 0, 40, 1)
+    if temp_out:
+      display.text('T.out = '+temp_out+' C', 0, 50, 1)
+    display.show()
+  else:
+    display.fill(0)
+    display.show()
 
   # time sync
   if time.time() - now_time > time_synq_frq:
