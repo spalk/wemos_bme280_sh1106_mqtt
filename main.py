@@ -45,8 +45,9 @@ display = sh1106.SH1106_I2C(128, 64, i2c, machine.Pin(16), 0x3c)
 display_switch = 'ON'
 
 # time synchroninize freq
+print('Get time from ntp server...')
 ntptime.settime()
-time_synq_frq = 3600  # everyday
+time_synq_frq = 3600  # every hour
 now_time = time.time()
 
 
@@ -63,6 +64,7 @@ while True:
 
   # recive and send mqtt messages to brocker
   if time.time() - now_mqtt > msg_frq:
+    print('Sending temp, humid, press to brocker...', temp, humi, pres)
     client.publish('Spalk/feeds/kidsroom.temp', str(temp))
     client.publish('Spalk/feeds/kidsroom.humid', str(humi))
     client.publish('Spalk/feeds/weather.pressure', str(pres))
@@ -95,7 +97,9 @@ while True:
 
   # time sync
   if time.time() - now_time > time_synq_frq:
+    print('Time synq...')
     ntptime.settime()
+    now_time = time.time()
 
   time.sleep_ms(5000)
 
