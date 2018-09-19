@@ -27,9 +27,9 @@ def sub_cb(topic, msg):
   global temp_out
   global display_switch
   print('Recieved from brocker: ', (topic, msg))
-  if topic.decode('utf-8') == 'Spalk/feeds/weather.temp':
+  if topic.decode('utf-8') == 'house/outside/temp':
     temp_out = msg.decode('utf-8')
-  elif topic.decode('utf-8') == 'Spalk/feeds/kidsroom.oled':
+  elif topic.decode('utf-8') == 'house/kidsroom/oled':
     display_switch = msg.decode('utf-8')
   else:
     pass
@@ -44,8 +44,8 @@ brocker['password'] = brkf[2].replace('\n','')
 client = MQTTClient('wemos-d1-mini-001', server=brocker['server'], user=brocker['user'], password=brocker['password'])
 client.set_callback(sub_cb)
 client.connect()
-client.subscribe(topic='Spalk/feeds/weather.temp') 
-client.subscribe(topic='Spalk/feeds/kidsroom.oled') 
+client.subscribe(topic='house/outside/temp') 
+client.subscribe(topic='house/kidsroom/oled') 
 
 # init display
 display = sh1106.SH1106_I2C(128, 64, i2c, machine.Pin(16), 0x3c)
@@ -72,9 +72,9 @@ while True:
   # recive and send mqtt messages to brocker
   if time.time() - now_mqtt > msg_frq:
     print('Sending temp, humid, press to brocker...', temp, humi, pres)
-    client.publish('Spalk/feeds/kidsroom.temp', str(temp))
-    client.publish('Spalk/feeds/kidsroom.humid', str(humi))
-    client.publish('Spalk/feeds/weather.pressure', str(pres))
+    client.publish('house/kidsroom/temp', str(temp))
+    client.publish('house/kidsroom/humid', str(humi))
+    client.publish('house/outside/pressure', str(pres))
     now_mqtt = time.time()
 
   # current time
