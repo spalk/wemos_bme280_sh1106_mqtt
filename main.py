@@ -34,7 +34,14 @@ def sub_cb(topic, msg):
   else:
     pass
 
-client = MQTTClient('wemos-d1-mini-001', server='io.adafruit.com', user='Spalk', password='dfdd23126c5a4cd68ef8404e0f7c6b06')
+# get brocker account info from config
+brkf = open('brocker.conf').readlines()
+brocker = {}
+brocker['server']   = brkf[0].replace('\n','')
+brocker['user']     = brkf[1].replace('\n','')
+brocker['password'] = brkf[2].replace('\n','')
+
+client = MQTTClient('wemos-d1-mini-001', server=brocker['server'], user=brocker['user'], password=brocker['password'])
 client.set_callback(sub_cb)
 client.connect()
 client.subscribe(topic='Spalk/feeds/weather.temp') 
@@ -98,8 +105,12 @@ while True:
   # time sync
   if time.time() - now_time > time_synq_frq:
     print('Time synq...')
-    ntptime.settime()
-    now_time = time.time()
+    try:
+      ntptime.settime()
+      now_time = time.time()
+      print('Successful')
+    except:
+      print('Unsuccessful')
 
   time.sleep_ms(5000)
 
