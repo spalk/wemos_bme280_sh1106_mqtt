@@ -16,7 +16,21 @@ temp_out = 0      # outside temperature via mqtt
 
 
 # init ic2 object
+#display_show('I2C Init...')
 i2c = machine.I2C(scl=machine.Pin(pinScl), sda=machine.Pin(pinSda)) 
+#display_show('OK')
+
+# init display
+display = sh1106.SH1106_I2C(128, 64, i2c, machine.Pin(16), 0x3c)
+display_switch = 'ON'
+
+def display_show(message):
+  display.fill(0)
+  display.text(str(message), 0, 20, 1)
+  display.show()
+  time.sleep_ms(200)
+
+display_show('HELLO! =)')
 
 # mqtt messaged frequency
 msg_frq = 60  # every 1 minute
@@ -41,22 +55,22 @@ brocker['server']   = brkf[0].replace('\n','')
 brocker['user']     = brkf[1].replace('\n','')
 brocker['password'] = brkf[2].replace('\n','')
 
+display_show('Brocker connecting...')
 client = MQTTClient('wemos-d1-mini-001', server=brocker['server'], user=brocker['user'], password=brocker['password'])
 client.set_callback(sub_cb)
 client.connect()
 client.subscribe(topic='house/outside/temp') 
 client.subscribe(topic='house/kidsroom/oled') 
+display_show('OK')
 
-# init display
-display = sh1106.SH1106_I2C(128, 64, i2c, machine.Pin(16), 0x3c)
-display_switch = 'ON'
 
 # time synchroninize freq
+display_show('Get time...')
 print('Get time from ntp server...')
 ntptime.settime()
 time_synq_frq = 3600  # every hour
 now_time = time.time()
-
+display_show('OK')
 
 while True:
   # get bme280 sensor data
