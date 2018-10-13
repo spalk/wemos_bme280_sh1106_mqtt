@@ -37,7 +37,13 @@ Leaving...
 ```
 rshell --buffer-size=30 -p /dev/ttyUSB0 
 ```
-for file exchange or `repl` for python prompt
+
+Now for file exchange you can use command for example:
+```cp \path\to\file\on\your\computer \pyboard\```
+`\pyboard\` - is storage on wemos device.
+
+
+Or you can see realtime python prompt with command `repl`
 
 
 ## How to connect to Wi-Fi [source](http://garybake.com/connected-to-the-world.html#connected-to-the-world)
