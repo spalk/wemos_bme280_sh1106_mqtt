@@ -88,6 +88,7 @@ while True:
     display_show('OK')
   except:
     display_show('Failed')
+    client.publish('system/log/error', 'BME')
 
 
   # check new mqtt messages
@@ -97,6 +98,7 @@ while True:
     display_show('OK')
   except:
     display_show('Failed')
+    client.publish('system/log/error', 'check brocker messages')
 
 
   # recive and send mqtt messages to brocker
@@ -111,6 +113,7 @@ while True:
       display_show('OK')
     except:
       display_show('Failed')
+      client.publish('system/log/error', 'Publishing data')
 
   # current time
   hour = str(time.localtime(time.time()+10800)[3])   #  10800 seq == +3 hours - Moscow time
@@ -149,6 +152,7 @@ while True:
     except:
       display_show('Failed')
       print('Unsuccessful')
+      client.publish('system/log/error', 'Tyme sync error')
 
   time.sleep_ms(10000)
 
