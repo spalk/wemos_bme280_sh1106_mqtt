@@ -65,27 +65,27 @@ display_show('OK')
 
 
 # time synchroninize freq
-display_show('Getting time...')
-print('Get time from ntp server...')
+#display_show('Getting time...')
+#print('Get time from ntp server...')
 ntptime.settime()
 time_synq_frq = 3600  # every hour
 now_time = time.time()
-display_show('OK')
+#display_show('OK')
 
  # get bme280 sensor data
-display_show('BME i2c init...')
+#display_show('BME i2c init...')
 bme = bme280.BME280(i2c=i2c,address=addrBME280)
-display_show('OK')
+#display_show('OK')
 
 while True:
 
   try:
-    display_show('Read BME data...')
+    #display_show('Read BME data...')
     bme_data = bme.read_compensated_data()
     temp = bme_data[0]/100              # degrees Celsius
     pres = bme_data[1]/256/100000*750   # mm Hg 
     humi = bme_data[2]/1024             # relative humidity
-    display_show('OK')
+    #display_show('OK')
   except:
     display_show('Failed')
     client.publish('system/log/error', 'BME')
@@ -93,9 +93,9 @@ while True:
 
   # check new mqtt messages
   try:
-    display_show('Check brkr msgs...')
+    #display_show('Check brkr msgs...')
     client.check_msg()
-    display_show('OK')
+    #display_show('OK')
   except:
     display_show('Failed')
     client.publish('system/log/error', 'check brocker messages')
@@ -104,7 +104,7 @@ while True:
   # recive and send mqtt messages to brocker
   if time.time() - now_mqtt > msg_frq:
     try:
-      display_show('Send data to brk')
+      #display_show('Send data to brk')
       print('Sending temp, humid, press to brocker...', temp, humi, pres)
       client.publish('house/kidsroom/temp', str(temp))
       client.publish('house/kidsroom/humid', str(humi))
@@ -148,7 +148,7 @@ while True:
       ntptime.settime()
       now_time = time.time()
       print('Successful')
-      display_show('OK')
+  #    display_show('OK')
     except:
       display_show('Failed')
       print('Unsuccessful')
